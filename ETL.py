@@ -61,7 +61,7 @@ def read_data(nrows = None):
     column_mapping = {'Account name': 'Category', 'Amount line': 'UAH'}
     ds.rename(columns=column_mapping, inplace=True)
     ds['Category'] = ds['Category'].str.lower()
-    return df, df_inkind, df_inv, ds
+    return df, ds
 
 def extract_relevant_txs(df, ds, start_date, end_date):
     """Main category mapping module"""
@@ -77,7 +77,7 @@ def extract_relevant_txs(df, ds, start_date, end_date):
                 '07 1000 DRONES RESTR': '1000 Drones for Ukraine', '09 MSU RESTR': 'Mobile Shower Units',
                 '11 VETERANIUS RESTR' : 'Veteranius', '08 VICTORY DRONES RESTR': 'Victory Drones', '10 Flight to Recovery RESTR': 'Flight to Recovery'}
     df['Category'] = df['Category'].replace(value_mapping)
-
+    ds['Category'] = ds['Category'].str.replace('software & apps', 'Admin')
     ds['UAH'] = ds['UAH'].abs()
 
     column_mapping = {'Name': 'Category', 'Amount line': 'UAH'}
