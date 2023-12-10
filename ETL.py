@@ -9,6 +9,14 @@ def format_money(value):
     else:
         return '${:.2f}'.format(value)
 
+def format_money_USD(value):
+    if abs(value) >= 1e6:
+        return '${:.2f}M'.format(value / 1e6)
+    elif abs(value) >= 1e3:
+        return '${:.2f}K'.format(value / 1e3)
+    else:
+        return '${:.2f}'.format(value)
+
 def read_txs():
     dtypes = { 'UAH': 'float64', 'Category': 'str' }
     df = pd.read_csv('data/donations.csv', dtype=dtypes, parse_dates=['Date'])
