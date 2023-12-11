@@ -86,10 +86,11 @@ def bar_plot(data, col, fig_title, show):
     fig = px.bar(data, x = data.index, y = col,
             color = col,
             text_auto = '$.2s',
-            title = fig_title
-            #color_continuous_scale = 'bluyl'
+            title = fig_title,
+            hover_name=data.index
             )
-    #fig.update_layout(coloraxis_showscale=False)
+    fig.update_traces(hovertemplate='%{x}<br>%{y:$,.2f}')
+
     fig.layout.coloraxis.showscale = False
 
     fig = fig_add_mean(fig, data, col)
