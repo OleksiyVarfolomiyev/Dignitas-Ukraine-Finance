@@ -39,46 +39,21 @@ def subplot_horizontal(fig1, fig2, rows, cols, type1, type2, title1, title2, sho
     else:
         return fig
 
-def subplot_vertical_(data1, data2, col1, col2, fig1, fig2, rows, cols, type1, type2, barmode, title1, title2, show):
-    """Plot two charts vertically"""
+def subplot_vertical(data1, data2, col1, col2, fig1, fig2, rows, cols, type1, type2, barmode, title1, title2, show):
+
     fig = make_subplots(rows=rows, cols=cols,
                         specs=[[{'type': type1}], [{'type': type2}]],
                         subplot_titles=[title1, title2])
-    if not data1.empty:
-       fig = fig_add_mean(fig, data1, col1)
-    if not data2.empty:
-       fig = fig_add_mean(fig, data2, col2, row=2, col_num=1)
+
+    #if not data1.empty:
+    fig = fig_add_mean(fig, data1, col1)
+    #if not data2.empty:
+    fig = fig_add_mean(fig, data2, col2, row=2, col_num=1)
 
     fig.update_layout(
         barmode = barmode,
-        legend = dict(orientation='h', x=0.2, y=-0.1)
-        )
-    for trace in fig1.data:
-        fig.add_trace(trace, row=1, col=1)
-
-    for trace in fig2.data:
-        fig.add_trace(trace, row=2, col=1)
-
-    fig.update_layout(grid={'columns': cols, 'rows': rows, 'pattern': "independent"})
-    fig.update_layout(height=700)
-    fig.update_layout(coloraxis_showscale=False)
-
-    if show:
-        fig.show(renderer="notebook")
-    else:
-        return fig
-
-def subplot_vertical(dat, fig1, fig2, rows, cols, type1, type2, barmode, title1, title2, show, value = 'UAH'):
-    fig = make_subplots(rows=rows, cols=cols,
-                    specs=[[{'type': type1}], [{'type': type2}]],
-                    subplot_titles=[title1, title2])
-
-    if not dat.empty:
-        fig_add_mean(fig, dat, value)
-
-    fig.update_layout(
-    barmode = barmode,
-    legend=dict(orientation='h', x=0.2, y=-0.1))
+        legend = dict(orientation='h', x=0.1, y=-0.1)
+    )
 
     for trace in fig1.data:
         fig.add_trace(trace, row=1, col=1)
@@ -111,10 +86,11 @@ def bar_plot(data, col, fig_title, show):
     fig = px.bar(data, x = data.index, y = col,
             color = col,
             text_auto = '$.2s',
-            title = fig_title,
-            color_continuous_scale = 'bluyl'
+            title = fig_title
+            #color_continuous_scale = 'bluyl'
             )
-    fig.update_layout(coloraxis_showscale=False)
+    #fig.update_layout(coloraxis_showscale=False)
+    fig.layout.coloraxis.showscale = False
 
     fig = fig_add_mean(fig, data, col)
     hide_axis_title(fig)
@@ -135,21 +111,22 @@ def bar_plot_horizontal(data, col, title):
 def stack_bar_plot(df, title, show):
     """Stacked bar plot"""
     df['Date'] = df['Date'].astype(str)
-    mean_value = df[df.columns[1:]].sum(axis=1).mean()
+    #mean_value = df[df.columns[1:]].sum(axis=1).mean()
+    mean_value = df[df.columns.drop('Date')].sum(axis=1).mean()
 
     fig = go.Figure()
 
-    for column in df.columns[df.columns != 'Date']:
+    for column in df.columns.drop('Date'):
         fig.add_trace(
-        go.Bar(name=column, x = df['Date'], y = df[column],
+        go.Bar(name=column,
+               x = df['Date'], y = df[column],
                text = df[column].apply(etl.format_money)
         ))
 
     fig.update_layout(
-    barmode='stack',
-    title = title,
-    legend=dict(orientation='h', x=0.2, y=-0.1),
-    # Add a horizontal line at the mean value
+        barmode='stack',
+        title = title,
+        legend=dict(orientation='h', x=0.1, y=-0.1),
         shapes=[
             dict(
                 type='line',
@@ -215,11 +192,11 @@ def bar_plot_with_line(df, col, fig_title, show):
     )
 
     fig.update_layout(
-    title=fig_title,
-    xaxis_title='',
-    yaxis_title='',
-    template='plotly_white',
-    showlegend = False
+        title=fig_title,
+        xaxis_title='',
+        yaxis_title='',
+        template='plotly_white',
+        showlegend = False
     )
     fig = fig_add_mean(fig, df, col)
     if show:
@@ -250,20 +227,6 @@ def bar_plot_grouped(data, col1, col2, fig_title, show):
     else:
         return fig
 
-
-def chart_by_period_(data, categories, period, title1, title2):
-    """bar plot by period on top and stacked bar plot by period on the bottom"""
-    data_sum_by_period = da.sum_by_period(data, period)
-    data_sum_by_period.index = data_sum_by_period.index.start_time
-    fig1 = bar_plot(data_sum_by_period, 'UAH', title1, False)
-
-    data_sum_by_period_by_category = da.sum_by_period_by_category(categories, period, data, 'Category').fillna(0)
-    if period == 'w':
-        data_sum_by_period_by_category['Date'] = data_sum_by_period_by_category['Date'].astype(str).str.split('/').str[0]
-    fig2 = stack_bar_plot(data_sum_by_period_by_category, title2, False)
-
-    subplot_vertical(data_sum_by_period, data_sum_by_period, 'UAH', 'UAH', fig1, fig2, 2, 1, 'xy', 'xy', 'stack', title1, title2, True)
-
 def chart_by_period(data, categories, period, title1, title2, value = 'UAH'):
     """bar plot by period on top and stacked bar plot by period on the bottom"""
     data_sum_by_period = da.sum_by_period(data, period, value)
@@ -274,6 +237,8 @@ def chart_by_period(data, categories, period, title1, title2, value = 'UAH'):
 
     if period == 'w':
         data_sum_by_period_by_category['Date'] = data_sum_by_period_by_category['Date'].astype(str).str.split('/').str[0]
+
     fig2 = stack_bar_plot(data_sum_by_period_by_category, title2, False)
 
-    subplot_vertical(data_sum_by_period, fig1, fig2, 2, 1, 'xy', 'xy', 'stack', title1, title2, True, value)
+    #subplot_vertical(data_sum_by_period, fig1, fig2, 2, 1, 'xy', 'xy', 'stack', title1, title2, True, value)
+    subplot_vertical(data_sum_by_period, data_sum_by_period, value, value, fig1, fig2, 2, 1, 'xy', 'xy', 'stack', title1, title2, True)
