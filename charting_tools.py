@@ -72,10 +72,10 @@ def subplot_vertical(data1, data2, col1, col2, fig1, fig2, rows, cols, type1, ty
 def pie_plot(data, col, title, show):
     """Pie plot"""
     fig = px.pie(data,
-             values = data[col],
-             names = data.index,
-             hole=0.5,
-             title = title)
+                values = data[col],
+                names = data.index,
+                hole=0.5,
+                title = title)
     if show:
         fig.show(renderer="notebook")
     else:
@@ -102,7 +102,7 @@ def bar_plot(data, col, fig_title, show):
 def bar_plot_horizontal(data, col, title):
     """Horizontal bar plot"""
     fig = px.bar(data, x = data[col], y = data.index, orientation='h',
-             title = title, color=col,  text_auto='.2s')
+                title = title, color=col, text_auto='.2s')
     hide_axis_title(fig)
     fig = fig_add_mean(fig, data, col)
     fig.update_traces(marker_showscale=False)
@@ -119,8 +119,8 @@ def stack_bar_plot(df, title, show):
     for column in df.columns.drop('Date'):
         fig.add_trace(
         go.Bar(name=column,
-               x = df['Date'], y = df[column],
-               text = df[column].apply(etl.format_money)
+                x = df['Date'], y = df[column],
+                text = df[column].apply(etl.format_money_USD)
         ))
 
     fig.update_layout(
@@ -153,10 +153,12 @@ def line_plot(data, col, title, show):
     window = 14
     moving_avg = data[col].rolling(window=window).mean()
 
-    fig.add_trace(go.Scatter(x = data.index, y = moving_avg,
-                             mode='lines', name=f'{window}-Day Moving Average',
-                             showlegend = False,
-                             line=dict(color='orange', dash = 'dot') ))
+    fig.add_trace(
+        go.Scatter(x = data.index, y = moving_avg,
+                    mode='lines', name=f'{window}-Day Moving Average',
+                    showlegend = False,
+                    line=dict(color='orange', dash = 'dot') ))
+
     hide_axis_title(fig)
     fig = fig_add_mean(fig, data, col)
 
@@ -206,8 +208,8 @@ def bar_plot_with_line(df, col, fig_title, show):
 
 def bar_plot_grouped(data, col1, col2, fig_title, show):
     """Grouped bar plot"""
-    trace1 = go.Bar(x=data.index, y=data[col1], name=col1, text=data[col1].apply(etl.format_money), marker_color = 'blue', showlegend=False)
-    trace2 = go.Bar(x=data.index, y=data[col2], name=col2, text=data[col2].apply(etl.format_money), marker_color = 'yellow', showlegend=False)
+    trace1 = go.Bar(x=data.index, y=data[col1], name=col1, text=data[col1].apply(etl.format_money_USD), marker_color = 'blue', showlegend=False)
+    trace2 = go.Bar(x=data.index, y=data[col2], name=col2, text=data[col2].apply(etl.format_money_USD), marker_color = 'yellow', showlegend=False)
 
     layout = go.Layout(
         barmode='group',
@@ -240,5 +242,4 @@ def chart_by_period(data, categories, period, title1, title2, value = 'UAH'):
 
     fig2 = stack_bar_plot(data_sum_by_period_by_category, title2, False)
 
-    #subplot_vertical(data_sum_by_period, fig1, fig2, 2, 1, 'xy', 'xy', 'stack', title1, title2, True, value)
     subplot_vertical(data_sum_by_period, data_sum_by_period, value, value, fig1, fig2, 2, 1, 'xy', 'xy', 'stack', title1, title2, True)
