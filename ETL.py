@@ -24,49 +24,52 @@ def read_txs():
     return df, ds
 
 def read_data(nrows = None):
+    """ETL data from QuickBooks csv file"""
     if nrows == None:
             df = pd.read_csv('./data/DIGNITAS UKRAINE INC_Transactions for Dashboard.csv',
-                         index_col=None,
-                         usecols = ['Account name', 'Date', 'Transaction type', 'Name', 'Amount line'],
-                         dtype={ 'Transaction type': 'category', 'Name': 'string', 'Account name': 'string'}, parse_dates=['Date'])
+                        index_col=None,
+                        usecols = ['Account', 'Date', 'Transaction type', 'Name', 'Amount'],
+                        dtype={ 'Transaction type': 'category', 'Name': 'string', 'Account': 'string'},
+                        parse_dates=['Date'])
     else:
-            return None
+        return None
 
-    df['Amount line'] = df['Amount line'].replace({'\$': '', ',': ''}, regex=True).astype(float)
+    #df['Amount'] = df['Amount'].replace({'\$': '', ',': ''}, regex=True).astype(float)
+    df['Amount'] = df['Amount'].replace({'\$': '', ',': '', '\(': '', '\)': ''}, regex=True).astype(float)
     df = df[df['Transaction type'] != 'Transfer']
-    df = df[df['Account name'] != 'FIVE % FOR ADMIN EXPENSES']
+    df = df[df['Account'] != 'FIVE % FOR ADMIN EXPENSES']
 
     # in-kind donations
-    df = df[df['Account name'] != 'IN-KIND DONATION DISTRIBUTIONS']
-    df_inkind = df[df['Account name'] == 'In-kind donations']
-    df = df[df['Account name'] != 'In-kind donations']
+    df = df[df['Account'] != 'IN-KIND DONATION DISTRIBUTIONS']
+    df_inkind = df[df['Account'] == 'In-kind donations']
+    df = df[df['Account'] != 'In-kind donations']
 
     # investments
-    df_inv = df[df['Account name'] == 'DIVIDENT RECEIVED FIDELITY']
+    df_inv = df[df['Account'] == 'DIVIDENT RECEIVED FIDELITY']
 
-    df = df[df['Account name'] != 'DIVIDENT RECEIVED FIDELITY']
-    df = df[df['Account name'] != 'FIDELITY INVESTMENTS']
-    df = df[df['Account name'] != 'In-kind donations']
+    df = df[df['Account'] != 'DIVIDENT RECEIVED FIDELITY']
+    df = df[df['Account'] != 'FIDELITY INVESTMENTS']
+    df = df[df['Account'] != 'In-kind donations']
 
     # spending
     ds = df[df['Transaction type'] != 'Deposit']
     ds = ds[ds['Transaction type'] != 'Journal Entry']
-    ds = ds[ds['Account name'] != 'Donations directed by individuals']
-    ds = ds[ds['Account name'] != 'CHASE ENDING IN 5315']
-    ds = ds[ds['Account name'] != 'PayPal Bank 3']
-    ds = ds[ds['Account name'] != 'DIVIDENT RECEIVED FIDELITY']
+    ds = ds[ds['Account'] != 'Donations directed by individuals']
+    ds = ds[ds['Account'] != 'CHASE ENDING IN 5315']
+    ds = ds[ds['Account'] != 'PayPal Bank 3']
+    ds = ds[ds['Account'] != 'DIVIDENT RECEIVED FIDELITY']
 
     # donations
-    df = df[df['Account name'] == 'Donations directed by individuals']
+    df = df[df['Account'] == 'Donations directed by individuals']
     df = df[df['Transaction type'] == 'Deposit']
 
     # Define the mapping of old column names to new column names
-    column_mapping = {'Name': 'Category', 'Amount line': 'UAH'}
+    column_mapping = {'Name': 'Category', 'Amount': 'UAH'}
     # Use the mapping to rename the columns
     df.rename(columns=column_mapping, inplace=True)
     df_inkind.rename(columns=column_mapping, inplace=True)
 
-    column_mapping = {'Account name': 'Category', 'Amount line': 'UAH'}
+    column_mapping = {'Account': 'Category', 'Amount': 'UAH'}
     ds.rename(columns=column_mapping, inplace=True)
     ds['Category'] = ds['Category'].str.lower()
     return df, ds
